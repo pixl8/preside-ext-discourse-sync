@@ -1,0 +1,21 @@
+{
+    "name":"PresideCMS Extension: Discourse Sync",
+    "type":"preside-extensions",
+    "version":"1.0.0",
+    "location":"https://github.com/pixl8/preside-ext-clamav/archive/v1.0.0.zip",
+    "private":true,
+    "author":"Pixl8 Interactive",
+    "directory":"application/extensions",
+    "repository":{
+        "type":"git",
+        "URL":"https://github.com/pixl8/preside-ext-discourse-sync"
+    },
+    "slug":"preside-ext-discourse-sync",
+    "projectURL":"https://github.com/pixl8/preside-ext-discourse-sync",
+    "ignore":[
+        ".git/*",
+        ".gitignore",
+        ".gitlab-ci.yml",
+        ".twgit_features_subject"
+    ]
+}

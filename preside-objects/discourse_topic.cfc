@@ -11,7 +11,7 @@ component {
 	property name="title"          type="string"  dbtype="varchar"  required=true;
 	property name="topic_url"      type="string"  dbtype="varchar"  required=true;
 	property name="created_at"     type="date"    dbtype="datetime" required=true;
-	property name="last_posted_at" type="date"    dbtype="datetime" required=true;
+	property name="last_posted_at" type="date"    dbtype="datetime" required=false;
 
 	property name="excerpt"        type="string"  dbtype="text";
 	property name="image_url"      type="string"  dbtype="varchar";

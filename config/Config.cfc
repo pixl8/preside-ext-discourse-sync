@@ -4,6 +4,6 @@ component {
 		var conf     = arguments.config;
 		var settings = conf.settings ?: {};
 
-		// todo: your settings here
+		settings.filters.topLevelDiscourseCategories = { filter="parent_category is null" };
 	}
 }

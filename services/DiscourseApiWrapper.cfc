@@ -21,16 +21,41 @@ component {
 		var page        = 0;
 		var result      = "";
 		var topicsToAdd = [];
+		var userMapping = {};
+		var users       = [];
 
 		do {
-			result = _apiCall( uri="c/#arguments.categoryId#", params={ page=page++ } );
+			result      = _apiCall( uri="c/#arguments.categoryId#", params={ page=page++ } );
 			topicsToAdd = result.topic_list.topics ?: [];
+			users       = result.users ?: [];
+
+			for( var user in users ) {
+				userMapping[ user.id ] = user;
+			}
+
+			for( var topic in topicsToAdd ) {
+				var posters = topic.posters ?: [];
+
+				for( var poster in posters ) {
+					if ( ( poster.description ) contains "Original Poster" ) {
+						topic.author = userMapping[ poster.user_id ].username;
+
+						break;
+					}
+				}
+			}
 
 			topics.append( topicsToAdd, true );
 
 		} while( topicsToAdd.len() );
 
 		return topics;
+	}
+
+	public struct function getUser( required string username ) {
+		var result = _apiCall( "users/#arguments.userName#" );
+
+		return result.user ?: {};
 	}
 
 
@@ -99,5 +124,4 @@ component {
 
 		return parsedResponse;
 	}
-
 }

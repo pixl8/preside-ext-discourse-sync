@@ -63,13 +63,17 @@ component {
 	}
 
 	public boolean function syncTopics( any logger ) {
-		var canLog         = StructKeyExists( arguments, "logger" );
-		var canInfo        = canLog && logger.canInfo();
-		var canError       = canLog && logger.canError();
-		var categoryFilter = ListToArray( $getPresideSetting( "discourse-sync-api-credentials", "categories" ) );
-		var baseUrl        = $getPresideSetting( "discourse-sync-api-credentials", "discourse_url" );
-		var topicDao       = $getPresideObject( "discourse_topic" );
-		var filter         = {};
+		var canLog              = StructKeyExists( arguments, "logger" );
+		var canInfo             = canLog && logger.canInfo();
+		var canError            = canLog && logger.canError();
+		var categoryFilter      = ListToArray( $getPresideSetting( "discourse-sync-api-credentials", "categories" ) );
+		var baseUrl             = $getPresideSetting( "discourse-sync-api-credentials", "discourse_url" );
+		var topicDao            = $getPresideObject( "discourse_topic" );
+		var filter              = {};
+		var topicsFromDiscourse = [];
+		var topicsToDelete      = [];
+		var existingTopics      = topicDao.selectData( selectFields=[ "id" ] );
+		    existingTopics      = ValueArray( existingTopics.id );
 
 		if ( categoryFilter.len() ) {
 			filter.id = categoryFilter;
@@ -91,6 +95,8 @@ component {
 			if ( canInfo ) { logger.info( "Fetched [#NumberFormat( topics.len() )#] topics from Discourse. Syncing now..." ); }
 
 			for( var topic in topics ) {
+				topicsFromDiscourse.append( topic.id );
+
 				var topicToSave = {
 					  id              = topic.id          ?: ""
 					, title           = topic.title       ?: ""
@@ -109,7 +115,7 @@ component {
 					, author          = _getAndSyncAuthorIdFromUserName( topic.author )
 				};
 
-				if ( topicDao.dataExists( id=topicToSave.id ) ) {
+				if ( existingTopics.find( topicToSave.id ) ) {
 					topicDao.updateData( id=topicToSave.id, data=topicToSave );
 				} else {
 					topicDao.insertData( data=topicToSave );
@@ -117,6 +123,18 @@ component {
 			}
 
 			if ( canInfo ) { logger.info( "Finished syncing category: [#category.name#]." ); }
+		}
+
+		for( var topic in existingTopics ) {
+			if ( !topicsFromDiscourse.find( topic ) ) {
+				topicsToDelete.append( topic );
+			}
+		}
+
+		if ( topicsToDelete.len() ) {
+			if ( canInfo ) { logger.info( "Deleting [#topicsToDelete.len()#] topic(s) that are no longer listed in Discourse." ); }
+			topicDao.deleteData( filter={ id=topicsToDelete } );
+			if ( canInfo ) { logger.info( "Finished deleting topics." ); }
 		}
 
 		if ( canInfo ) { logger.info( "All done!" ); }

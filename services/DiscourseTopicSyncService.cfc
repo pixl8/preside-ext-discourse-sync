@@ -132,7 +132,8 @@ component {
 				} else {
 					topicDao.insertData( data=topicToSave );
 				}
-				if ( canInfo ) { logger.info( "Synced topic: [#topicToSave.title#]." ); }
+				if ( canInfo ) { logger.info( "Synced topic: [#topicToSave.title#]. Sleeping for 1s to avoid Discourse rate limiting issues!" ); }
+				sleep( 1000 );
 			}
 
 			if ( canInfo ) { logger.info( "Finished syncing category: [#category.name#]." ); }

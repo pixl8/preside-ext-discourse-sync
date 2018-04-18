@@ -95,8 +95,6 @@ component {
 			if ( canInfo ) { logger.info( "Fetched [#NumberFormat( topics.len() )#] topics from Discourse. Syncing now..." ); }
 
 			for( var topic in topics ) {
-				topicsFromDiscourse.append( topic.id );
-
 				var topicToSave = {
 					  id              = topic.id          ?: ""
 					, title           = topic.title       ?: ""
@@ -115,11 +113,26 @@ component {
 					, author          = _getAndSyncAuthorIdFromUserName( topic.author )
 				};
 
+				try {
+					var fullTopicDetail = _getDiscourseApiWrapper().getTopic( topic.id ?: "" );
+				} catch( any e ) {
+					if ( canError ) {
+						logger.error( "Error fetching full topic details for topic, [#topicToSave.title#]. See following log for error details. The topic has not been saved." );
+						logger.error( e );
+					}
+					continue;
+				}
+
+				topicToSave.append( _extractFieldsFromFullTopic( fullTopicDetail ) );
+
+				topicsFromDiscourse.append( topic.id );
+
 				if ( existingTopics.find( topicToSave.id ) ) {
 					topicDao.updateData( id=topicToSave.id, data=topicToSave );
 				} else {
 					topicDao.insertData( data=topicToSave );
 				}
+				if ( canInfo ) { logger.info( "Synced topic: [#topicToSave.title#]." ); }
 			}
 
 			if ( canInfo ) { logger.info( "Finished syncing category: [#category.name#]." ); }
@@ -183,6 +196,14 @@ component {
 		var dateTime = arguments.input.reReplace( "Z$", "" );
 
 		return IsDate( dateTime ) ? dateTime : "";
+	}
+
+	private struct function _extractFieldsFromFullTopic( required struct fullTopicDetail ) {
+		return {
+			  full_content = fullTopicDetail.post_stream.posts[ 1 ].cooked ?: ""
+			, score        = Val( fullTopicDetail.post_stream.posts[ 1 ].score ?: "" )
+		};
+
 	}
 
 // GETTERS AND SETTERS

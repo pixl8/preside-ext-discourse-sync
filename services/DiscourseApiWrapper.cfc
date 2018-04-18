@@ -52,12 +52,15 @@ component {
 		return topics;
 	}
 
+	public struct function getTopic( required numeric topicId ) {
+		return _apiCall( "t/#arguments.topicId#" );
+	}
+
 	public struct function getUser( required string username ) {
 		var result = _apiCall( "users/#arguments.userName#" );
 
 		return result.user ?: {};
 	}
-
 
 // PRIVATE HELPERS
 	private any function _apiCall( required string uri, string method="GET", struct params={} ) {

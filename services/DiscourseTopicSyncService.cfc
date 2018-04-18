@@ -107,7 +107,7 @@ component {
 					, category        = topic.category_id ?: ""
 					, visible         = topic.visible     ?: false
 					, topic_url       = baseUrl & "/t/#topic.slug#"
-					, image_url       = Len( Trim( topic.image_url ?: "" ) ) ? baseUrl & topic.image_url : ""
+					, image_url       = topic.image_url : ""
 					, created_at      = _parseDateTime( topic.created_at     ?: "" )
 					, last_posted_at  = _parseDateTime( topic.last_posted_at ?: "" )
 					, author          = _getAndSyncAuthorIdFromUserName( topic.author )

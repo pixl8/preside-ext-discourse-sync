@@ -1,8 +1,8 @@
 {
     "name":"PresideCMS Extension: Discourse Sync",
     "type":"preside-extensions",
-    "version":"1.0.6",
-    "location":"https://github.com/pixl8/preside-ext-discourse-sync/archive/v1.0.6.zip",
+    "version":"$VERSION_NUMBER",
+    "location":"$DOWNLOAD_URL",
     "private":false,
     "author":"Pixl8 Interactive",
     "directory":"application/extensions",

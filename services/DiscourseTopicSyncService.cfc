@@ -27,7 +27,7 @@ component {
 		var existingCategories = categoryDao.selectData( selectFields=[ "id" ] );
 		    existingCategories = ValueArray( existingCategories.id );
 
-		if ( canInfo ) { logger.info( "[#newCategories.len()#] fetched from Discourse. Syncing now..." ) }
+		if ( canInfo ) { logger.info( "[#newCategories.len()#] fetched from Discourse. Syncing now..." ); }
 
 		for( var category in newCategories ) {
 			category.parent_category = category.parent_category_id ?: "";
@@ -41,7 +41,7 @@ component {
 			newCategoryIds.append( category.id );
 		}
 
-		if ( canInfo ) { logger.info( "Done." ) }
+		if ( canInfo ) { logger.info( "Done." ); }
 
 		if ( newCategoryIds.len() ) {
 			for( var categoryId in existingCategories ) {
@@ -51,11 +51,11 @@ component {
 			}
 
 			if ( categoriesToDelete.len() ) {
-				if ( canInfo ) { logger.info( "Deleting [#categoriesToDelete.len()#] categories that no longer exist in Discourse..." ) }
+				if ( canInfo ) { logger.info( "Deleting [#categoriesToDelete.len()#] categories that no longer exist in Discourse..." ); }
 
 				categoryDao.deleteData( filter={ id=categoriesToDelete } );
 
-				if ( canInfo ) { logger.info( "Done." ) }
+				if ( canInfo ) { logger.info( "Done." ); }
 			}
 		}
 
@@ -68,6 +68,7 @@ component {
 		var canError            = canLog && logger.canError();
 		var categoryFilter      = ListToArray( $getPresideSetting( "discourse-sync-api-credentials", "categories" ) );
 		var baseUrl             = $getPresideSetting( "discourse-sync-api-credentials", "discourse_url" );
+		var fallbackAuthor      = $getPresideSetting( "discourse-sync-api-credentials", "fallback_missing_author" );
 		var topicDao            = $getPresideObject( "discourse_topic" );
 		var filter              = {};
 		var topicsFromDiscourse = [];
@@ -110,8 +111,25 @@ component {
 					, topic_url       = baseUrl & "/t/#topic.slug#/#topic.id#"
 					, created_at      = _parseDateTime( topic.created_at     ?: "" )
 					, last_posted_at  = _parseDateTime( topic.last_posted_at ?: "" )
-					, author          = _getAndSyncAuthorIdFromUserName( topic.author )
 				};
+
+				try {
+					topicToSave.author = _getAndSyncAuthorIdFromUserName( topic.author );
+				} catch ( e ){
+					if ( canError ) {
+						logger.error( "Error fetching author [#topic.author#] for topic [#topic.title#]" );
+						logger.error( e.message );
+					}
+					if ( len( fallbackAuthor ?: "" ) ) {
+						if ( canError ) {
+							logger.info( "falling back to [#fallbackAuthor#]" );
+						}
+						topicToSave.author = _getAndSyncAuthorIdFromUserName( fallbackAuthor );
+					} else {
+						throw "Error fetching author [#topic.author#] for topic [#topic.title#], no fallback author defined";
+					}
+				}
+
 
 				try {
 					var fullTopicDetail = _getDiscourseApiWrapper().getTopic( topic.id ?: "" );
